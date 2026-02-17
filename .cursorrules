@@ -1,0 +1,353 @@
+# Pastelería Bella - Frontend - Reglas del Proyecto
+
+## Stack Tecnológico (NO CAMBIAR)
+
+- **Next.js 14+** con App Router (`/app`)
+- **React 18** - Framework UI
+- **TypeScript** estricto
+- **Tailwind CSS** para estilos
+- **NO Prisma** - El frontend NO accede directamente a la base de datos
+
+## Restricciones Arquitectónicas
+
+1. **Separación frontend/backend** - Todo acceso a datos vía API REST
+2. **NO acceso directo a DB** - NUNCA importar Prisma en el frontend
+3. **NO estilos inline** - Usar solo Tailwind CSS
+4. **NO usar !important** - Resolver conflictos con especificidad CSS correcta
+5. **Implementar por incrementos pequeños** - Cero refactors grandes
+6. **Consistencia visual** - Usar componentes UI reutilizables y paleta de colores definida
+
+## Estructura de Carpetas
+
+```
+pasteleria-app/
+├── app/
+│   ├── layout.tsx          # Layout principal
+│   ├── page.tsx            # Página principal
+│   └── globals.css         # Estilos globales
+├── components/
+│   ├── ui/                 # Componentes reutilizables (Button, Card, Input, Badge, Table)
+│   └── shared/             # Componentes compartidos (CelebrationSection, AntojosSection)
+├── lib/
+│   └── api.ts             # Cliente API para consumir backend
+├── public/
+│   └── images/            # Imágenes estáticas
+└── [config files]
+```
+
+## Consumo de APIs
+
+### Cliente API
+
+- **Ubicación**: `lib/api.ts`
+- **Función**: Funciones para consumir endpoints del backend
+- **Base URL**: `NEXT_PUBLIC_API_URL` desde variables de entorno
+- **Ejemplo**: `fetchProducts()` → `GET ${API_BASE_URL}/products`
+
+### Reglas de Consumo
+
+- **Server Components**: Usar `fetch()` con `cache: 'no-store'` para datos dinámicos
+- **Client Components**: Usar `fetch()` o librerías como `axios` (si se agrega)
+- **Error handling**: Siempre manejar errores y mostrar estados de carga/error
+- **Tipos TypeScript**: Definir interfaces para respuestas de API
+
+## UI/UX Design System - Pastelería Bella
+
+### Identidad Visual
+
+**Filosofía de Diseño:**
+- **Estilo**: Moderno, limpio, ligeramente futurista, pero cálido y artesanal premium
+- **Sensación**: Artesanal premium + tecnología limpia
+- **Principio**: Consistencia > creatividad - Reutilizar componentes y patrones
+- **Enfoque**: No es fintech, es pastelería - Cálido y amigable
+
+### Paleta de Colores (OBLIGATORIA - NO CAMBIAR)
+
+**Colores Principales:**
+- **Teal Principal**: `teal-600` (`#0d9488`) - Color principal del logo, usar para elementos destacados
+- **Teal Hover/Active**: `teal-700` (`#0f766e`) / `teal-800` (`#115e59`) - Estados interactivos
+- **Teal Claro**: `teal-50` (`#f0fdfa`) - Fondos suaves, secciones alternas
+- **Teal Oscuro**: `teal-800` (`#115e59`) - Headers, elementos destacados
+
+**Neutros Cálidos:**
+- **Beige/Stone Claro**: `stone-100` (`#f5f5f4`) - Fondos cálidos
+- **Beige/Stone Medio**: `stone-600` (`#57534e`) - Texto secundario
+- **Beige/Stone Oscuro**: `stone-700` (`#44403c`) - Texto principal en fondos claros
+- **Blanco**: `white` - Cards, contraste
+
+**Colores Funcionales:**
+- **Éxito**: `green-600` (`#16a34a`) / `green-100` (`#dcfce7`) para fondos
+- **Advertencia**: `amber-500` (`#f59e0b`) / `amber-100` (`#fef3c7`) para fondos
+- **Error**: `red-600` (`#dc2626`) / `red-100` (`#fee2e2`) para fondos
+- **Info**: `blue-600` (`#2563eb`) / `blue-100` (`#dbeafe`) para fondos
+
+### Colores de Botones (OBLIGATORIO - USAR SIEMPRE)
+
+**Button Component - Variantes Estándar:**
+
+1. **Primary (Principal)**:
+   - Fondo: `bg-teal-600`
+   - Texto: `text-white`
+   - Hover: `hover:bg-teal-700`
+   - Focus: `focus:ring-teal-500`
+   - **Uso**: Acciones principales, CTAs, botones de confirmación
+
+2. **Secondary (Secundario)**:
+   - Fondo: `bg-stone-600`
+   - Texto: `text-white`
+   - Hover: `hover:bg-stone-700`
+   - Focus: `focus:ring-stone-500`
+   - **Uso**: Acciones secundarias, botones de cancelar
+
+3. **Outline (Contorno)**:
+   - Borde: `border border-teal-600`
+   - Texto: `text-teal-700`
+   - Fondo hover: `hover:bg-teal-50`
+   - Focus: `focus:ring-teal-500`
+   - **Uso**: Acciones terciarias, botones de información
+
+4. **Ghost (Fantasma)**:
+   - Texto: `text-stone-700`
+   - Fondo hover: `hover:bg-stone-100`
+   - Focus: `focus:ring-stone-500`
+   - **Uso**: Acciones sutiles, enlaces como botones
+
+**Botones Hero (Pill Shape - Específicos para Hero Section):**
+
+1. **Botón con fondo de imagen**:
+   - Forma: `rounded-full` (pill shape)
+   - Fondo: `bg-[url('/images/background/fondoCard.png')] bg-cover bg-center bg-no-repeat`
+   - Texto: `text-stone-800 text-lg font-semibold`
+   - Padding: `px-10 py-5`
+   - Sombra: `shadow-md hover:shadow-lg`
+   - Transición: `transition-all duration-200`
+
+2. **Botón verde sólido (Hero)**:
+   - Forma: `rounded-full` (pill shape)
+   - Fondo: `bg-teal-600 hover:bg-teal-700`
+   - Texto: `text-white text-lg font-semibold`
+   - Padding: `px-10 py-5`
+   - Sombra: `shadow-md hover:shadow-lg`
+   - Transición: `transition-all duration-200`
+
+**Reglas de Botones:**
+- ✅ **SIEMPRE usar** las variantes del componente `Button` (`components/ui/Button.tsx`)
+- ✅ **SIEMPRE usar** los colores definidos arriba
+- ❌ **NUNCA crear** botones con colores personalizados fuera de la paleta
+- ❌ **NUNCA usar** `!important` en estilos de botones
+- ✅ **SIEMPRE mantener** consistencia: mismo color = misma acción en toda la app
+
+### Colores de Cards (OBLIGATORIO - USAR SIEMPRE)
+
+**Card Component - Estilos Estándar:**
+
+1. **Card Básica (Productos, Contenido General)**:
+   - Fondo: `bg-white`
+   - Borde: `rounded-lg`
+   - Sombra: `shadow-md`
+   - Padding: `p-6`
+   - Hover: `hover:shadow-lg transition-shadow duration-200`
+   - **Uso**: Cards de productos, contenido general, información
+
+2. **CelebrationCard (Cards de Celebración/Antojos)**:
+   - Fondo card: `bg-white`
+   - Borde: `rounded-2xl` (más redondeado)
+   - Sombra: `shadow-md`
+   - Overflow: `overflow-hidden`
+   - Hover: `hover:shadow-lg transition-shadow duration-200`
+   - **Estructura específica**:
+     - Imagen: `aspect-[4/5]` (ratio vertical 4:5)
+     - Franja inferior: `bg-[url('/images/background/fondoCard.png')] bg-cover bg-center bg-no-repeat`
+     - Título: `font-decorative text-3xl lg:text-4xl font-normal text-stone-800`
+     - Subtítulo: `text-sm font-normal text-stone-600` (sans-serif, NO decorativa)
+   - **Uso**: Secciones "¿Qué estás celebrando?" y "Algunos de nuestros antojos"
+   - **Componente**: `components/shared/CelebrationCard.tsx`
+
+3. **Card con Badge WhatsApp**:
+   - Reutiliza el mismo estilo de CelebrationCard
+   - Badge: `bg-white/90 backdrop-blur-sm border border-stone-200 rounded-full`
+   - Posición: `absolute top-3 right-3`
+   - Color ícono: `text-green-600`
+   - **Uso**: Cards de antojos con opción de pedido por WhatsApp
+
+**Reglas de Cards:**
+- ✅ **SIEMPRE usar** el componente `Card` (`components/ui/Card.tsx`) para cards básicas
+- ✅ **SIEMPRE usar** el componente `CelebrationCard` (`components/shared/CelebrationCard.tsx`) para cards de celebración/antojos
+- ✅ **SIEMPRE mantener** fondo blanco (`bg-white`) para cards
+- ✅ **SIEMPRE usar** sombras consistentes: `shadow-md` normal, `shadow-lg` en hover
+- ❌ **NUNCA crear** cards con fondos de colores (teal, stone, etc.) - solo blanco
+- ❌ **NUNCA usar** `!important` en estilos de cards
+- ✅ **SIEMPRE mantener** consistencia: mismo estilo = mismo tipo de contenido
+
+### Tipografía
+
+**Fuentes Implementadas:**
+- **Dancing Script**: Fuente decorativa principal (`font-decorative`) - Google Fonts
+  - Peso: 400 (normal)
+  - Uso: Títulos decorativos, hero titles, títulos de cards
+- **Lora**: Fuente serif elegante (`font-lora`) - Google Fonts
+  - Pesos: 400, 500, 600, 700
+  - Uso: Slogan del hero, textos destacados
+- **Sans-serif por defecto**: Arial, Helvetica (sistema)
+
+**Tamaños de Texto:**
+- **H1 Hero**: `font-decorative text-6xl lg:text-7xl xl:text-8xl font-normal`
+- **H1 Principal**: `font-bold text-3xl lg:text-4xl`
+- **H2 Sección**: `font-decorative text-4xl lg:text-5xl font-normal`
+- **H3 Card Título**: `font-decorative text-3xl lg:text-4xl font-normal`
+- **Slogan Hero**: `font-lora text-2xl lg:text-3xl xl:text-4xl font-semibold`
+- **Texto Cuerpo**: `text-base` o `text-sm`
+- **Texto Secundario**: `text-stone-600`
+
+**Reglas de Uso de Fuente Decorativa:**
+- ✅ **Se usa en:**
+  - Títulos de secciones: "¿Qué estás celebrando?", "Algunos de nuestros antojos…"
+  - Hero titles: "Pastelería Bella"
+  - Títulos de cards de celebración
+  - Secciones editoriales / emocionales
+- ❌ **NO se usa en:**
+  - Botones
+  - Formularios
+  - Textos largos
+  - Subtítulos de cards (usan sans-serif)
+  - Precios
+  - Admin / backoffice
+
+### Layout y Espaciado
+
+**Container:**
+- **Máximo ancho**: `max-w-7xl mx-auto`
+- **Padding horizontal**: `px-4 sm:px-6 lg:px-8`
+- **Padding vertical secciones**: `py-8` (estándar), `py-16` (grande)
+- **Separaciones**: `mb-12` o `mb-16` entre secciones
+
+**Grid Productos:**
+- `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6`
+
+### Componentes Base (Reutilizables)
+
+**Button:**
+- **Ubicación**: `components/ui/Button.tsx`
+- **Variantes**: primary, secondary, outline, ghost
+- **Tamaños**: sm, md, lg
+- **Colores**: Ver sección "Colores de Botones" arriba
+- **Focus**: `focus:outline-none focus:ring-2 focus:ring-offset-2`
+- **Transiciones**: `transition-colors duration-200`
+
+**Card:**
+- **Ubicación**: `components/ui/Card.tsx`
+- **Estilo base**: `bg-white rounded-lg shadow-md p-6`
+- **Hover**: `hover:shadow-lg transition-shadow duration-200`
+- **Colores**: Ver sección "Colores de Cards" arriba
+
+**CelebrationCard:**
+- **Ubicación**: `components/shared/CelebrationCard.tsx`
+- **Estilo específico**: Ver sección "Colores de Cards" arriba
+- **Props**: `id`, `title`, `subtitle`, `imageUrl`, `showWhatsappBadge?`, `whatsappUrl?`
+
+**Badge:**
+- **Ubicación**: `components/ui/Badge.tsx`
+- **Variantes**: default (beige), success (green), warning (amber), error (red), info (blue), teal
+- **Estilo**: `px-3 py-1 rounded-full text-xs font-semibold`
+- **Colores**: 
+  - default: `bg-stone-100 text-stone-800`
+  - success: `bg-green-100 text-green-800`
+  - warning: `bg-amber-100 text-amber-800`
+  - error: `bg-red-100 text-red-800`
+  - info: `bg-blue-100 text-blue-800`
+  - teal: `bg-teal-100 text-teal-800`
+
+**Input:**
+- **Ubicación**: `components/ui/Input.tsx`
+- **Estilo**: `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500`
+- **Borde**: `border-gray-300`, error: `border-red-500`
+- **Label arriba, error abajo**
+
+**Table:**
+- **Ubicación**: `components/ui/Table.tsx`
+- **Estilo**: Tabla reutilizable con paginación opcional
+
+### Interacciones y Animaciones
+
+**Microinteracciones:**
+- `transition-colors duration-200` - Cambios de color
+- `transition-shadow duration-200` - Cambios de sombra
+- `transition-all duration-200` - Transiciones generales
+- **NO animaciones complejas** - Solo transiciones CSS básicas
+- **NO sobrecargar** - Máximo 2-3 transiciones por elemento
+
+### Secciones de Landing Page
+
+**Estructura Estándar:**
+1. **Header**: Fondo blanco, logo + navegación, sticky opcional
+2. **Hero**: 
+   - Fondo: `bg-[url('/images/background/hero-pasteleria.png')] bg-cover bg-center bg-no-repeat`
+   - Overlay: `bg-black/40` para contraste
+   - Padding: `py-24 lg:py-32 xl:py-40`
+   - Estructura:
+     - Título: "Pastelería Bella" - `font-decorative text-6xl lg:text-7xl xl:text-8xl font-normal text-white`
+     - Slogan: "Tortas personalizadas..." - `font-lora text-2xl lg:text-3xl xl:text-4xl font-semibold text-white`
+     - Descripción: `text-lg lg:text-xl xl:text-2xl text-white`
+     - Botones: Pill shape con estilos específicos (ver Botones Hero)
+3. **Productos**: Grid de cards, fondo blanco o `teal-50` alternado
+4. **Celebraciones**: Sección "¿Qué estás celebrando?" con fondo `fondo.png`
+5. **Antojos**: Sección "Algunos de nuestros antojos" con fondo `fondo.png` y badges WhatsApp
+6. **Valores**: Sección con iconos/texto, fondo alterno
+7. **Footer**: Fondo `teal-800`, texto blanco, iconos sociales (WhatsApp, Instagram)
+
+### Restricciones Globales de Diseño
+
+- **Máximo 3-4 colores dominantes** por pantalla (teal + stone + blanco)
+- **Sin sombras excesivas** - Solo `shadow-sm`, `shadow-md`, `shadow-lg`
+- **Sin bordes gruesos** - Máximo `border-2`
+- **Mobile-first siempre** - Diseño responsive desde móvil
+- **Claridad visual** - Jerarquía clara, contraste adecuado
+- **Espaciado generoso** - Respiración visual, no saturación
+- **Consistencia de colores** - SIEMPRE usar la paleta definida para botones y cards
+
+### Principios de Diseño
+
+- **Consistencia primero** - Mismo estilo en todas las pantallas
+- **Reutilización** - Usar componentes existentes antes de crear nuevos
+- **Accesibilidad** - aria-labels, contraste adecuado, focus visible
+- **Performance** - Código limpio, sin estilos inline, sin `!important`
+- **Colores consistentes** - NUNCA inventar nuevos colores para botones o cards
+
+## Reglas de Estilos
+
+- **NO usar `!important`** - Resolver con especificidad CSS
+- **NO estilos inline** - Todo con Tailwind
+- **Componentes reutilizables** - Button, Card, Input, Badge, Table
+- **Props tipadas** con TypeScript
+- **Accesibilidad básica** - aria-labels donde corresponda
+
+## Testing y Validación
+
+### Por Commit
+- Cada commit debe dejar el sistema **runnable**
+- Probar flujo completo después de cada commit
+- Verificar que no hay errores de TypeScript
+- Verificar que estilos Tailwind funcionan
+- Verificar que los colores de botones y cards son consistentes
+
+### Validaciones Comunes
+- TypeScript compila sin errores
+- `npm run dev` inicia correctamente
+- Componentes UI se ven correctamente
+- Colores de botones y cards siguen la paleta definida
+
+## Variables de Entorno
+
+### Requeridas
+- `NEXT_PUBLIC_API_URL` - URL del backend API (default: http://localhost:3001/api)
+
+### Opcionales
+- `NODE_ENV` - development | production
+
+## Notas Importantes
+
+- **Separación frontend/backend** - El frontend consume APIs, NO accede directamente a Prisma
+- **Consistencia visual** - SIEMPRE usar los colores definidos para botones y cards
+- **Reutilización** - Usar componentes existentes antes de crear nuevos
+- **Sin refactors grandes** - Implementar por incrementos pequeños
+- **Mobile-first** - Diseño responsive desde móvil
