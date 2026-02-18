@@ -19,11 +19,25 @@ npm install
 
 ### 2. Configurar variables de entorno
 
-Crea un archivo `.env.local` en la raíz del proyecto:
+Copia el archivo `.env.example` a `.env.local`:
+
+```bash
+cp .env.example .env.local
+```
+
+Edita `.env.local` y configura los valores según tu entorno:
 
 ```env
+# URL del backend API
+# IMPORTANTE: El prefijo NEXT_PUBLIC_ es necesario para exponer esta variable al cliente
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ```
+
+**Notas importantes:**
+- El archivo `.env.local` está en `.gitignore` y no se subirá a Git
+- En desarrollo, si no configuras esta variable, se usará `http://localhost:3001/api` como fallback (con advertencia)
+- En producción, esta variable es **obligatoria** y debe estar configurada en tu plataforma de hosting (Vercel, etc.)
+- En producción, se recomienda usar HTTPS para la URL del API
 
 ### 3. Iniciar servidor de desarrollo
 
