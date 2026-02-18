@@ -13,7 +13,7 @@ const celebrations: CelebrationData[] = [
     id: 'cumpleanos',
     title: 'Cumpleaños',
     subtitle: 'Clásicos, infantiles o para adultos',
-    imageUrl: '/images/celebraciones/cumpleaños.JPG',
+    imageUrl: '/images/celebraciones/Cumpleanos.JPG',
   },
   {
     id: 'matrimonio',
@@ -31,7 +31,7 @@ const celebrations: CelebrationData[] = [
     id: 'graduacion',
     title: 'Graduación',
     subtitle: 'Un logro que se celebra en grande',
-    imageUrl: '/images/celebraciones/Graduación.JPG',
+    imageUrl: '/images/celebraciones/Graduacion.JPG',
   },
   {
     id: 'aniversario',
