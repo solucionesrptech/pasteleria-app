@@ -1,4 +1,7 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+import { getApiUrl } from './config'
+
+// Obtener URL del API con validación
+const API_BASE_URL = getApiUrl()
 
 export interface Product {
   id: string
