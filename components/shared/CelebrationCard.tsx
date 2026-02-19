@@ -1,4 +1,7 @@
+'use client'
+
 import React from 'react'
+import Link from 'next/link'
 
 interface CelebrationCardProps {
   id: string
@@ -7,6 +10,7 @@ interface CelebrationCardProps {
   imageUrl: string
   showWhatsappBadge?: boolean
   whatsappUrl?: string
+  href?: string
 }
 
 const WhatsAppIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
@@ -27,6 +31,7 @@ export const CelebrationCard: React.FC<CelebrationCardProps> = ({
   imageUrl,
   showWhatsappBadge = false,
   whatsappUrl,
+  href,
 }) => {
   const BadgeContent = whatsappUrl ? (
     <a
@@ -34,6 +39,7 @@ export const CelebrationCard: React.FC<CelebrationCardProps> = ({
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-stone-200 rounded-full shadow-sm text-xs font-medium text-stone-700 hover:bg-white hover:shadow-md transition-all duration-200"
+      onClick={(e) => e.stopPropagation()}
     >
       <WhatsAppIcon className="w-3.5 h-3.5 text-green-600" />
       <span>Pedido x WhatsApp</span>
@@ -42,17 +48,15 @@ export const CelebrationCard: React.FC<CelebrationCardProps> = ({
     <button
       type="button"
       className="flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-sm border border-stone-200 rounded-full shadow-sm text-xs font-medium text-stone-700 hover:bg-white hover:shadow-md transition-all duration-200"
+      onClick={(e) => e.stopPropagation()}
     >
       <WhatsAppIcon className="w-3.5 h-3.5 text-green-600" />
       <span>Pedido x WhatsApp</span>
     </button>
   )
 
-  return (
-    <div
-      key={id}
-      className="bg-white rounded-2xl shadow-md overflow-hidden transition-shadow duration-200 hover:shadow-lg"
-    >
+  const cardContent = (
+    <>
       <div className="aspect-[4/5] w-full bg-stone-100 relative overflow-hidden">
         <img
           src={imageUrl}
@@ -73,6 +77,29 @@ export const CelebrationCard: React.FC<CelebrationCardProps> = ({
           {subtitle}
         </p>
       </div>
+    </>
+  )
+
+  const cardClassName = `bg-white rounded-2xl shadow-md overflow-hidden transition-shadow duration-200 hover:shadow-lg ${href ? 'cursor-pointer' : ''}`
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        key={id}
+        className={cardClassName}
+      >
+        {cardContent}
+      </Link>
+    )
+  }
+
+  return (
+    <div
+      key={id}
+      className={cardClassName}
+    >
+      {cardContent}
     </div>
   )
 }
