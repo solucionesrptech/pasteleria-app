@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Dancing_Script, Lora } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const dancingScript = Dancing_Script({
   subsets: ["latin"],
@@ -19,6 +20,9 @@ const lora = Lora({
 export const metadata: Metadata = {
   title: "Pastelería Bella",
   description: "Deliciosos pasteles y tortas artesanales",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -28,7 +32,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${dancingScript.variable} ${lora.variable}`}>{children}</body>
+      <body className={`${dancingScript.variable} ${lora.variable}`}>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

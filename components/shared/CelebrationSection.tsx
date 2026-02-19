@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { CelebrationCard } from './CelebrationCard'
 
@@ -65,6 +67,7 @@ export const CelebrationSection: React.FC = () => {
               title={celebration.title}
               subtitle={celebration.subtitle}
               imageUrl={celebration.imageUrl}
+              href={`/productos/${celebration.id}`}
             />
           ))}
         </div>

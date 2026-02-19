@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { CelebrationSection } from '@/components/shared/CelebrationSection'
 import { AntojosSection } from '@/components/shared/AntojosSection'
+import { Header } from '@/components/shared/Header'
 import { fetchProducts } from '@/lib/api'
 
 async function getProducts() {
@@ -29,34 +30,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img 
-                src="/images/logo/logo.png" 
-                alt="Pastelería Bella Logo" 
-                className="h-16 w-auto"
-              />
-              <div>
-                <h1 className="text-3xl font-bold text-teal-600">Pastelería Bella</h1>
-                <p className="text-stone-600 text-sm mt-1">Deliciosos pasteles y tortas artesanales</p>
-              </div>
-            </div>
-            <nav className="hidden md:flex items-center gap-6">
-              <a href="#productos" className="text-stone-700 hover:text-teal-600 transition-colors duration-200">
-                Productos
-              </a>
-              <a href="#valores" className="text-stone-700 hover:text-teal-600 transition-colors duration-200">
-                Nosotros
-              </a>
-              <a href="#contacto" className="text-stone-700 hover:text-teal-600 transition-colors duration-200">
-                Contacto
-              </a>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero Section */}
       <section className="relative bg-[url('/images/background/hero-pasteleria.png')] bg-cover bg-center bg-no-repeat py-24 lg:py-32 xl:py-40">
@@ -86,58 +60,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Productos Destacados */}
-      {products.length > 0 && (
-        <section id="productos" className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-teal-800 mb-4">Productos Destacados</h2>
-              <p className="text-stone-600 text-lg">Nuestros pasteles más populares</p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <Card key={product.id} className="flex flex-col">
-                  <div className="flex-1">
-                    {product.imageUrl ? (
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-full h-48 object-cover rounded-lg mb-4"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-teal-100 rounded-lg mb-4 flex items-center justify-center">
-                        <span className="text-stone-400 text-sm">Sin imagen</span>
-                      </div>
-                    )}
-                    <h3 className="text-xl font-semibold text-teal-800 mb-2">
-                      {product.name}
-                    </h3>
-                    {product.description && (
-                      <p className="text-stone-600 text-sm mb-4 line-clamp-2">
-                        {product.description}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-bold text-teal-600">
-                        {formatPrice(product.priceCLP)}
-                      </span>
-                      {product.stock > 0 ? (
-                        <Badge variant="success">Disponible</Badge>
-                      ) : (
-                        <Badge variant="error">Agotado</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <Button variant="primary" className="w-full">
-                    Agregar al Carrito
-                  </Button>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+     
 
       {/* Sección ¿Qué estás celebrando? */}
       <CelebrationSection />
