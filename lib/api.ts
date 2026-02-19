@@ -1,10 +1,7 @@
 import { getApiUrl } from './config'
 
-// Helper para obtener la URL del API dinámicamente
-// Esto evita problemas de compilación cuando NEXT_PUBLIC_API_URL no está disponible en tiempo de build
-function getApiBaseUrl(): string {
-  return getApiUrl()
-}
+// Obtener URL del API con validación
+const API_BASE_URL = getApiUrl()
 
 // Helper para manejar cookies
 function setCookie(name: string, value: string, days: number = 7): void {
@@ -74,7 +71,6 @@ export interface Product {
 
 export async function fetchProducts(): Promise<Product[]> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const response = await fetch(`${API_BASE_URL}/products`, {
       cache: 'no-store',
       headers: {
@@ -92,7 +88,6 @@ export async function fetchProducts(): Promise<Product[]> {
   } catch (error) {
     // Manejar errores de red (servidor no disponible, CORS, etc.)
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      const API_BASE_URL = getApiBaseUrl()
       console.error('Error de conexión: El backend no está disponible en', API_BASE_URL)
       console.error('Asegúrate de que el backend esté corriendo en el puerto 3001')
     } else {
@@ -104,7 +99,6 @@ export async function fetchProducts(): Promise<Product[]> {
 
 export async function fetchProduct(id: string): Promise<Product | null> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const response = await fetch(`${API_BASE_URL}/products/${id}`, {
       cache: 'no-store',
       headers: {
@@ -122,7 +116,6 @@ export async function fetchProduct(id: string): Promise<Product | null> {
   } catch (error) {
     // Manejar errores de red (servidor no disponible, CORS, etc.)
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      const API_BASE_URL = getApiBaseUrl()
       console.error('Error de conexión: El backend no está disponible en', API_BASE_URL)
       console.error('Asegúrate de que el backend esté corriendo en el puerto 3001')
     } else {
@@ -169,7 +162,6 @@ export interface Order {
 
 export async function createOrder(orderData: CreateOrderData): Promise<Order> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const response = await fetch(`${API_BASE_URL}/orders`, {
       method: 'POST',
       headers: {
@@ -192,7 +184,6 @@ export async function createOrder(orderData: CreateOrderData): Promise<Order> {
     return response.json()
   } catch (error) {
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      const API_BASE_URL = getApiBaseUrl()
       console.error('Error de conexión: El backend no está disponible en', API_BASE_URL)
       console.error('Asegúrate de que el backend esté corriendo en el puerto 3001')
       throw new Error('Error de conexión con el servidor. Por favor, intenta nuevamente.')
@@ -227,7 +218,6 @@ export interface LoginData {
 
 export async function login(loginData: LoginData): Promise<AuthResponse> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -273,7 +263,6 @@ export async function getCurrentUser(): Promise<User | null> {
       return null
     }
 
-    const API_BASE_URL = getApiBaseUrl()
     const response = await authenticatedFetch(`${API_BASE_URL}/auth/me`)
 
     if (!response.ok) {
@@ -312,7 +301,6 @@ export interface AdjustStockData {
 
 export async function adjustStock(data: AdjustStockData): Promise<Product> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const response = await authenticatedFetch(`${API_BASE_URL}/inventory/adjust`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -352,7 +340,6 @@ export interface InventoryMovement {
 
 export async function getInventoryMovements(productId?: string): Promise<InventoryMovement[]> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const url = productId 
       ? `${API_BASE_URL}/inventory/movements?productId=${productId}`
       : `${API_BASE_URL}/inventory/movements`
@@ -372,7 +359,6 @@ export async function getInventoryMovements(productId?: string): Promise<Invento
 
 export async function getLowStockProducts(threshold: number = 5): Promise<Product[]> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const response = await authenticatedFetch(`${API_BASE_URL}/inventory/low-stock?threshold=${threshold}`)
 
     if (!response.ok) {
@@ -408,7 +394,6 @@ export interface UpdateProductData {
 
 export async function createProduct(data: CreateProductData): Promise<Product> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const response = await authenticatedFetch(`${API_BASE_URL}/products`, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -434,7 +419,6 @@ export async function createProduct(data: CreateProductData): Promise<Product> {
 
 export async function updateProduct(id: string, data: UpdateProductData): Promise<Product> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const response = await authenticatedFetch(`${API_BASE_URL}/products/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -460,7 +444,6 @@ export async function updateProduct(id: string, data: UpdateProductData): Promis
 
 export async function deleteProduct(id: string): Promise<Product> {
   try {
-    const API_BASE_URL = getApiBaseUrl()
     const response = await authenticatedFetch(`${API_BASE_URL}/products/${id}`, {
       method: 'DELETE',
     })
