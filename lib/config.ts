@@ -20,12 +20,10 @@ function isValidUrl(url: string): boolean {
 }
 
 /**
- * Obtiene y valida la URL del backend API
+ * URL base del backend Nest (ej. http://localhost:3001/api). Usar para llamadas directas al backend.
  */
-export function getApiUrl(): string {
+export function getBackendApiUrl(): string {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
-
-  // En producción, la variable es obligatoria
   if (isProduction && !apiUrl) {
     throw new Error(
       'NEXT_PUBLIC_API_URL no está configurada. ' +
@@ -33,36 +31,40 @@ export function getApiUrl(): string {
       'Configúrala en las variables de entorno de tu plataforma de hosting.'
     )
   }
-
-  // Si no está definida, usar fallback solo en desarrollo
-  if (!apiUrl) {
-    const fallback = 'http://localhost:3001/api'
-    if (isDevelopment) {
-      console.warn(
-        `⚠️  NEXT_PUBLIC_API_URL no está configurada. ` +
-        `Usando fallback: ${fallback}\n` +
-        `Crea un archivo .env.local con: NEXT_PUBLIC_API_URL=${fallback}`
-      )
-      return fallback
-    }
+  const fallback = 'http://localhost:3001/api'
+  const resolved = apiUrl || (isDevelopment ? fallback : '')
+  if (isDevelopment && !apiUrl) {
+    console.warn(
+      `⚠️  NEXT_PUBLIC_API_URL no está configurada. Usando fallback: ${fallback}. ` +
+      `Crea un archivo .env.local con: NEXT_PUBLIC_API_URL=${fallback}`
+    )
+  }
+  if (isProduction && !resolved) {
     throw new Error('NEXT_PUBLIC_API_URL no está configurada')
   }
-
-  // Validar formato de URL
-  if (!isValidUrl(apiUrl)) {
+  if (resolved && !isValidUrl(resolved)) {
     throw new Error(
-      `NEXT_PUBLIC_API_URL tiene un formato inválido: "${apiUrl}". ` +
+      `NEXT_PUBLIC_API_URL tiene un formato inválido: "${resolved}". ` +
       `Debe ser una URL válida que comience con http:// o https://`
     )
   }
-
-  // En producción, requerir HTTPS
-  if (isProduction && !apiUrl.startsWith('https://')) {
+  if (isProduction && resolved && !resolved.startsWith('https://')) {
     console.warn(
-      `⚠️  NEXT_PUBLIC_API_URL no usa HTTPS en producción: "${apiUrl}". ` +
+      `⚠️  NEXT_PUBLIC_API_URL no usa HTTPS en producción: "${resolved}". ` +
       `Se recomienda usar HTTPS en producción por seguridad.`
     )
   }
+  return resolved || 'http://localhost:3001/api'
+}
 
-  return apiUrl
+/**
+ * Obtiene la URL base para llamadas API.
+ * En el navegador usa la misma origen (/api) para que Next.js reenvíe al backend (rewrites).
+ * En el servidor usa la URL del backend directamente.
+ */
+export function getApiUrl(): string {
+  if (typeof window !== 'undefined') {
+    return window.location.origin + '/api'
+  }
+  return getBackendApiUrl()
 }

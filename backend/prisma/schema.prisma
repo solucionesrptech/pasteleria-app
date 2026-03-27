@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  BODEGUERO
+  PASTERO
+  ADMINISTRADOR
+}
+
+model User {
+  id                 String               @id @default(cuid())
+  email              String               @unique
+  passwordHash       String               @map("password_hash")
+  role               UserRole             @default(USER)
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  inventoryMovements InventoryMovement[]
+  ordersCreated      Order[]              @relation("OrderCreatedBy")
+}
+
+model Product {
+  id                 String               @id @default(cuid())
+  name               String
+  description        String?
+  priceCLP           Int                   @map("price_clp")
+  imageUrl           String?              @map("image_url")
+  active             Boolean              @default(true)
+  stock              Int                  @default(0)
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  inventoryMovements InventoryMovement[]
+  orderItems         OrderItem[]
+}
+
+enum InventoryMovementType {
+  IN
+  OUT
+  ADJUST
+  LOSS
+}
+
+model InventoryMovement {
+  id         String                 @id @default(cuid())
+  productId  String                 @map("product_id")
+  type       InventoryMovementType
+  quantity   Int
+  reason     String?
+  userId     String?                @map("user_id")
+  createdAt  DateTime               @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("inventory_movements")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}
+
+enum OrderSource {
+  WEB
+  MANUAL
+}
+
+enum FulfillmentType {
+  DELIVERY
+  PICKUP
+}
+
+model Order {
+  id               String          @id @default(cuid())
+  customerName     String?         @map("customer_name")
+  customerEmail    String?         @map("customer_email")
+  customerPhone    String?         @map("customer_phone")
+  fulfillmentType  FulfillmentType @default(PICKUP) @map("fulfillment_type")
+  deliveryAddress  String?         @map("delivery_address")
+  zone             String?
+  totalCLP         Int             @map("total_clp")
+  status           OrderStatus     @default(PENDING)
+  publicToken      String?         @unique @map("public_token")
+  source           OrderSource     @default(WEB)
+  createdByUserId  String?         @map("created_by_user_id")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  createdBy User?       @relation("OrderCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  items     OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String   @map("order_id")
+  productId    String   @map("product_id")
+  quantity     Int
+  unitPriceCLP Int      @map("unit_price_clp")
+  lineTotalCLP Int      @map("line_total_clp")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("order_items")
+}

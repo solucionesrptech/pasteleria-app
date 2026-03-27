@@ -1,11 +1,10 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchProducts } from '@/lib/api'
 import { ProductosGrid } from '@/components/productos/ProductosGrid'
 
 interface PageProps {
-  params: {
-    categoria: string
-  }
+  params: Promise<{ categoria: string }>
 }
 
 // Mapeo de categorías válidas
@@ -54,7 +53,7 @@ async function getProductsByCategory(categoria: string) {
 }
 
 export default async function ProductosCategoriaPage({ params }: PageProps) {
-  const { categoria } = params
+  const { categoria } = await params
   const categoriaInfo = categoriasValidas[categoria]
 
   if (!categoriaInfo) {
@@ -65,6 +64,14 @@ export default async function ProductosCategoriaPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+        <Link
+          href="/"
+          className="text-stone-600 hover:text-teal-600 transition-colors duration-200"
+        >
+          ← Volver al inicio
+        </Link>
+      </nav>
       {/* Hero Section con mismo fondo que página principal */}
       <section className="relative bg-[url('/images/background/hero-pasteleria.png')] bg-cover bg-center bg-no-repeat py-24 lg:py-32">
         <div className="absolute inset-0 bg-black/40"></div>
