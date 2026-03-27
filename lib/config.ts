@@ -12,7 +12,7 @@ const isDevelopment = !isProduction
  */
 function normalizePublicApiUrl(raw: string | undefined): string | undefined {
   if (raw == null || raw === '') return undefined
-  const cleaned = raw.trim().replace(/\r\n|\r|\n/g, '')
+  const cleaned = raw.trim().replace(/\r\n|\r|\n/g, '').replace(/\/+$/, '')
   return cleaned === '' ? undefined : cleaned
 }
 
@@ -30,14 +30,22 @@ function isValidUrl(url: string): boolean {
 
 /**
  * URL base del backend Nest (ej. http://localhost:3001/api). Usar para llamadas directas al backend.
+ * En el navegador solo existe NEXT_PUBLIC_*; en Node se puede usar BACKEND_API_URL (no expuesta al cliente).
  */
 export function getBackendApiUrl(): string {
-  const apiUrl = normalizePublicApiUrl(process.env.NEXT_PUBLIC_API_URL)
+  const isBrowser = typeof window !== 'undefined'
+  const apiUrl = normalizePublicApiUrl(
+    isBrowser
+      ? process.env.NEXT_PUBLIC_API_URL
+      : process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL,
+  )
   if (isProduction && !apiUrl) {
     throw new Error(
-      'NEXT_PUBLIC_API_URL no está configurada. ' +
-      'Esta variable es obligatoria en producción. ' +
-      'Configúrala en las variables de entorno de tu plataforma de hosting.'
+      isBrowser
+        ? 'NEXT_PUBLIC_API_URL no está configurada. ' +
+          'Es obligatoria en producción para llamadas al backend desde el navegador.'
+        : 'BACKEND_API_URL o NEXT_PUBLIC_API_URL no está configurada. ' +
+          'Al menos una es obligatoria en producción en el servidor.',
     )
   }
   const fallback = 'http://localhost:3001/api'
@@ -49,12 +57,16 @@ export function getBackendApiUrl(): string {
     )
   }
   if (isProduction && !resolved) {
-    throw new Error('NEXT_PUBLIC_API_URL no está configurada')
+    throw new Error(
+      isBrowser
+        ? 'NEXT_PUBLIC_API_URL no está configurada'
+        : 'BACKEND_API_URL o NEXT_PUBLIC_API_URL no está configurada',
+    )
   }
   if (resolved && !isValidUrl(resolved)) {
     throw new Error(
-      `NEXT_PUBLIC_API_URL tiene un formato inválido: "${resolved}". ` +
-      `Debe ser una URL válida que comience con http:// o https://`
+      `La URL del backend tiene un formato inválido: "${resolved}". ` +
+      `Debe comenzar con http:// o https://`,
     )
   }
   if (isProduction && resolved && !resolved.startsWith('https://')) {
