@@ -15,9 +15,13 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    // Si ya está autenticado y tiene rol PRODUCCION o SUPER_ADMIN, redirigir al dashboard
+    // Redirigir según rol después del login
     if (!authLoading && isAuthenticated && user) {
-      if (user.role === 'PRODUCCION' || user.role === 'SUPER_ADMIN') {
+      if (user.role === 'SUPER_ADMIN' || user.role === 'ADMINISTRADOR') {
+        router.push('/admin/dashboard')
+      } else if (user.role === 'DESPACHO') {
+        router.push('/dashboard/despacho')
+      } else if (user.role === 'PASTERO' || user.role === 'PRODUCCION') {
         router.push('/dashboard')
       } else {
         router.push('/')
@@ -30,18 +34,18 @@ export default function LoginPage() {
     setError(null)
     setSubmitting(true)
 
-    try {
-      await login(email, password)
-      // El useEffect existente manejará la redirección cuando el user esté disponible
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message)
-      } else {
-        setError('Error al iniciar sesión. Por favor, intenta nuevamente.')
-      }
-    } finally {
-      setSubmitting(false)
+    const result = await login(email, password)
+    setSubmitting(false)
+
+    if (!result.success) {
+      const message =
+        result.error === 'Credenciales inválidas'
+          ? 'Email o contraseña incorrectos. Revisa e intenta de nuevo.'
+          : result.error
+      setError(message)
+      return
     }
+    // El useEffect manejará la redirección cuando el user esté disponible
   }
 
   if (authLoading) {
@@ -66,7 +70,7 @@ export default function LoginPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+            <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm" role="alert">
               {error}
             </div>
           )}

@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/Button'
 interface InventoryTableProps {
   products: Product[]
   onAdjustStock: (product: Product) => void
+  onRegisterLoss?: (product: Product) => void
 }
 
-export function InventoryTable({ products, onAdjustStock }: InventoryTableProps) {
+export function InventoryTable({ products, onAdjustStock, onRegisterLoss }: InventoryTableProps) {
   if (products.length === 0) {
     return (
       <div className="text-center py-12">
@@ -70,13 +71,24 @@ export function InventoryTable({ products, onAdjustStock }: InventoryTableProps)
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <Button
-                  variant="outline"
-                  onClick={() => onAdjustStock(product)}
-                  className="text-sm"
-                >
-                  Ajustar Stock
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => onAdjustStock(product)}
+                    className="text-sm"
+                  >
+                    Ajustar Stock
+                  </Button>
+                  {onRegisterLoss && (
+                    <Button
+                      variant="outline"
+                      onClick={() => onRegisterLoss(product)}
+                      className="text-sm"
+                    >
+                      Registrar merma
+                    </Button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

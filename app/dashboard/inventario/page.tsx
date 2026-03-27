@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react'
 import { fetchProducts, adjustStock, getLowStockProducts, Product } from '@/lib/api'
 import { InventoryTable } from '@/components/dashboard/InventoryTable'
 import { AdjustStockModal } from '@/components/dashboard/AdjustStockModal'
+import { RegisterLossModal } from '@/components/dashboard/RegisterLossModal'
 
 export default function InventarioPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [lossProduct, setLossProduct] = useState<Product | null>(null)
+  const [isLossModalOpen, setIsLossModalOpen] = useState(false)
   const [showLowStock, setShowLowStock] = useState(false)
 
   useEffect(() => {
@@ -41,6 +44,21 @@ export default function InventarioPage() {
   const handleStockAdjusted = async () => {
     await loadProducts()
     handleCloseModal()
+  }
+
+  const handleRegisterLoss = (product: Product) => {
+    setLossProduct(product)
+    setIsLossModalOpen(true)
+  }
+
+  const handleCloseLossModal = () => {
+    setIsLossModalOpen(false)
+    setLossProduct(null)
+  }
+
+  const handleLossRegistered = async () => {
+    await loadProducts()
+    handleCloseLossModal()
   }
 
   const handleToggleLowStock = async () => {
@@ -93,6 +111,16 @@ export default function InventarioPage() {
         <InventoryTable
           products={products}
           onAdjustStock={handleAdjustStock}
+          onRegisterLoss={handleRegisterLoss}
+        />
+      )}
+
+      {lossProduct && (
+        <RegisterLossModal
+          isOpen={isLossModalOpen}
+          onClose={handleCloseLossModal}
+          product={lossProduct}
+          onLossRegistered={handleLossRegistered}
         />
       )}
 

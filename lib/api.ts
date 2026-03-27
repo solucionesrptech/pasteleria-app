@@ -1,4 +1,4 @@
-import { getApiUrl } from './config'
+import { getApiUrl, getBackendApiUrl } from './config'
 
 // Obtener URL del API con validación
 const API_BASE_URL = getApiUrl()
@@ -40,6 +40,21 @@ function getToken(): string | null {
   
   // Fallback a localStorage
   return localStorage.getItem('auth_token')
+}
+
+function getFriendlyStatusMessage(status: number): string {
+  switch (status) {
+    case 401:
+      return 'Credenciales inválidas. Revisa tu email y contraseña.'
+    case 403:
+      return 'No tienes permiso para realizar esta acción.'
+    case 404:
+      return 'No se encontró el servicio. Verifica que la API esté en ejecución.'
+    case 500:
+      return 'Error en el servidor. Intenta más tarde.'
+    default:
+      return `Error ${status}. Intenta nuevamente.`
+  }
 }
 
 // Helper para hacer requests autenticados
@@ -160,6 +175,70 @@ export interface Order {
   items: OrderItem[]
 }
 
+export interface InternalOrderItem {
+  id: string
+  productId: string
+  productName: string
+  quantity: number
+  unitPriceCLP: number
+  lineTotalCLP: number
+}
+
+export interface InternalOrder {
+  id: string
+  customerName: string
+  customerEmail: string
+  customerPhone: string
+  fulfillmentType: 'DELIVERY' | 'PICKUP'
+  deliveryAddress?: string | null
+  zone?: string | null
+  totalCLP: number
+  status: string
+  publicToken: string
+  createdAt: Date
+  updatedAt: Date
+  items: InternalOrderItem[]
+}
+
+export async function fetchInternalOrders(): Promise<InternalOrder[]> {
+  const response = await authenticatedFetch(`${API_BASE_URL}/orders/internal`)
+  if (!response.ok) {
+    const text = await response.text()
+    let errorMessage = `Error ${response.status}: ${response.statusText}`
+    try {
+      const errorData = text ? JSON.parse(text) : {}
+      const msg = errorData.message
+      if (typeof msg === 'string' && msg) errorMessage = msg
+      else if (Array.isArray(msg) && msg.length > 0) errorMessage = msg.join('. ')
+    } catch {
+      if (text && text.length < 200) errorMessage = text
+    }
+    throw new Error(errorMessage)
+  }
+  return response.json()
+}
+
+export async function updateOrderStatus(orderId: string, status: string): Promise<InternalOrder> {
+  const response = await authenticatedFetch(`${API_BASE_URL}/orders/${orderId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  })
+  if (!response.ok) {
+    const text = await response.text()
+    let errorMessage = `Error ${response.status}: ${response.statusText}`
+    try {
+      const errorData = text ? JSON.parse(text) : {}
+      const msg = errorData.message
+      if (typeof msg === 'string' && msg) errorMessage = msg
+      else if (Array.isArray(msg) && msg.length > 0) errorMessage = msg.join('. ')
+    } catch {
+      if (text && text.length < 200) errorMessage = text
+    }
+    throw new Error(errorMessage)
+  }
+  return response.json()
+}
+
 export async function createOrder(orderData: CreateOrderData): Promise<Order> {
   try {
     const response = await fetch(`${API_BASE_URL}/orders`, {
@@ -171,12 +250,22 @@ export async function createOrder(orderData: CreateOrderData): Promise<Order> {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(async () => {
-        const errorText = await response.text().catch(() => 'Error desconocido')
-        return { message: errorText }
-      })
-      
-      const errorMessage = errorData.message || `Error ${response.status}: ${response.statusText}`
+      const text = await response.text()
+      let errorMessage = `Error ${response.status}: ${response.statusText}`
+      try {
+        const errorData = text ? JSON.parse(text) : {}
+        const msg = errorData.message
+        const err = errorData.error
+        if (Array.isArray(msg) && msg.length > 0) {
+          errorMessage = msg.join('. ')
+        } else if (typeof msg === 'string' && msg) {
+          errorMessage = msg
+        } else if (typeof err === 'string' && err) {
+          errorMessage = err
+        }
+      } catch {
+        if (text && text.length < 200) errorMessage = text
+      }
       console.error(`Error al crear orden: ${errorMessage}`)
       throw new Error(errorMessage)
     }
@@ -216,7 +305,9 @@ export interface LoginData {
   password: string
 }
 
-export async function login(loginData: LoginData): Promise<AuthResponse> {
+export type LoginResult = { success: true; user: User; token: string } | { success: false; error: string }
+
+export async function login(loginData: LoginData): Promise<LoginResult> {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
@@ -228,31 +319,38 @@ export async function login(loginData: LoginData): Promise<AuthResponse> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(async () => {
-        const errorText = await response.text().catch(() => 'Error desconocido')
-        return { message: errorText }
+        const errorText = await response.text().catch(() => '')
+        return { message: errorText || undefined }
       })
-      
-      const errorMessage = errorData.message || `Error ${response.status}: ${response.statusText}`
-      throw new Error(errorMessage)
+
+      const rawMessage = errorData?.message
+      let errorMessage: string
+      if (typeof rawMessage === 'string' && rawMessage.trim()) {
+        errorMessage =
+          rawMessage.length > 500 || rawMessage.trim().startsWith('<')
+            ? getFriendlyStatusMessage(response.status)
+            : rawMessage.trim()
+      } else if (Array.isArray(rawMessage) && rawMessage.length > 0) {
+        errorMessage = (rawMessage as string[]).join('. ')
+      } else {
+        errorMessage = getFriendlyStatusMessage(response.status)
+      }
+      return { success: false, error: errorMessage }
     }
 
     const data = await response.json()
-    
-    // Guardar token en localStorage y cookies
+
     if (typeof window !== 'undefined') {
       localStorage.setItem('auth_token', data.token)
       setCookie('auth_token', data.token, 7) // 7 días
     }
 
-    return data
+    return { success: true, user: data.user, token: data.token }
   } catch (error) {
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('Error de conexión con el servidor. Por favor, intenta nuevamente.')
-    } else if (error instanceof Error) {
-      throw error
-    } else {
-      throw new Error('Error desconocido al iniciar sesión')
+      return { success: false, error: 'Error de conexión con el servidor. Por favor, intenta nuevamente.' }
     }
+    return { success: false, error: 'Error desconocido al iniciar sesión' }
   }
 }
 
@@ -266,8 +364,8 @@ export async function getCurrentUser(): Promise<User | null> {
     const response = await authenticatedFetch(`${API_BASE_URL}/auth/me`)
 
     if (!response.ok) {
-      if (response.status === 401) {
-        // Token inválido, limpiar
+      // 401 o 5xx: tratar como sesión inválida para no romper la app
+      if (response.status === 401 || response.status >= 500) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('auth_token')
           deleteCookie('auth_token')
@@ -289,6 +387,58 @@ export function logout(): void {
     localStorage.removeItem('auth_token')
     deleteCookie('auth_token')
   }
+}
+
+// ==================== REPORTES ====================
+
+export interface SalesReportSummary {
+  totalSalesCLP: number
+  paidOrdersCount: number
+  unitsSold: number
+}
+
+export interface SalesReportProduct {
+  productId: string
+  productName: string
+  quantitySold: number
+  totalSalesCLP: number
+}
+
+export type SalesReportRange = 'daily' | 'weekly' | 'monthly'
+
+export interface LossSummary {
+  totalUnitsLost: number
+  count: number
+  estimatedCostCLP: number
+}
+
+export interface LossItem {
+  createdAt: string
+  productId: string
+  productName: string
+  quantity: number
+  reason: string | null
+  userId: string | null
+  userEmail: string | null
+  estimatedCostCLP: number
+}
+
+export interface SalesReportResponse {
+  range: string
+  summary: SalesReportSummary
+  products: SalesReportProduct[]
+  lossSummary?: LossSummary
+  losses?: LossItem[]
+}
+
+export async function getSalesReport(range: SalesReportRange): Promise<SalesReportResponse> {
+  const response = await authenticatedFetch(`${API_BASE_URL}/reports/sales?range=${range}`)
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: '' }))
+    const msg = errorData?.message || getFriendlyStatusMessage(response.status)
+    throw new Error(msg)
+  }
+  return response.json()
 }
 
 // ==================== INVENTARIO ====================
@@ -324,6 +474,25 @@ export async function adjustStock(data: AdjustStockData): Promise<Product> {
   }
 }
 
+export interface RegisterLossData {
+  productId: string
+  quantity: number
+  reason: string
+}
+
+export async function registerLoss(data: RegisterLossData): Promise<Product> {
+  const response = await authenticatedFetch(`${getBackendApiUrl()}/inventory/loss`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: '' }))
+    const msg = errorData?.message || getFriendlyStatusMessage(response.status)
+    throw new Error(msg)
+  }
+  return response.json()
+}
+
 export interface InventoryMovement {
   id: string
   productId: string
@@ -336,14 +505,29 @@ export interface InventoryMovement {
     id: string
     name: string
   }
+  user?: {
+    id: string
+    email: string
+  } | null
 }
 
-export async function getInventoryMovements(productId?: string): Promise<InventoryMovement[]> {
+export async function getInventoryMovements(
+  productId?: string,
+  type?: string,
+  dateFrom?: string,
+  dateTo?: string,
+): Promise<InventoryMovement[]> {
   try {
-    const url = productId 
-      ? `${API_BASE_URL}/inventory/movements?productId=${productId}`
-      : `${API_BASE_URL}/inventory/movements`
-    
+    const params = new URLSearchParams()
+    if (productId) params.set('productId', productId)
+    if (type) params.set('type', type)
+    if (dateFrom) params.set('dateFrom', dateFrom)
+    if (dateTo) params.set('dateTo', dateTo)
+    const query = params.toString()
+    const url = query
+      ? `${getBackendApiUrl()}/inventory/movements?${query}`
+      : `${getBackendApiUrl()}/inventory/movements`
+
     const response = await authenticatedFetch(url)
 
     if (!response.ok) {

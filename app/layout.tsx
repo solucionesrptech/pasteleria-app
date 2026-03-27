@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Dancing_Script, Lora } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 
 const dancingScript = Dancing_Script({
   subsets: ["latin"],
@@ -33,7 +34,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${dancingScript.variable} ${lora.variable}`}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <CartProvider>{children}</CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

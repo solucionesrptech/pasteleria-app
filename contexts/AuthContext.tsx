@@ -3,11 +3,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { User, login as apiLogin, getCurrentUser, logout as apiLogout } from '@/lib/api'
 
+export type LoginResult = { success: true } | { success: false; error: string }
+
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<LoginResult>
   logout: () => void
   checkAuth: () => Promise<void>
 }
@@ -35,14 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth()
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<LoginResult> => {
+    setLoading(true)
     try {
-      setLoading(true)
-      const response = await apiLogin({ email, password })
-      setUser(response.user)
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error)
-      throw error
+      const result = await apiLogin({ email, password })
+      if (!result.success) {
+        return { success: false, error: result.error }
+      }
+      setUser(result.user)
+      return { success: true }
     } finally {
       setLoading(false)
     }
