@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getBackendApiUrl } from '@/lib/config'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+const BACKEND_URL = getBackendApiUrl()
 
 export async function POST(request: NextRequest) {
   console.log('NEXT API LOSS HIT')

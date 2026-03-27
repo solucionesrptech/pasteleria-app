@@ -8,6 +8,15 @@ const isProduction = process.env.NODE_ENV === 'production'
 const isDevelopment = !isProduction
 
 /**
+ * Limpia NEXT_PUBLIC_API_URL: espacios, saltos de línea o pegados por error en .env / panel de hosting.
+ */
+function normalizePublicApiUrl(raw: string | undefined): string | undefined {
+  if (raw == null || raw === '') return undefined
+  const cleaned = raw.trim().replace(/\r\n|\r|\n/g, '')
+  return cleaned === '' ? undefined : cleaned
+}
+
+/**
  * Valida que una URL tenga el formato correcto
  */
 function isValidUrl(url: string): boolean {
@@ -23,7 +32,7 @@ function isValidUrl(url: string): boolean {
  * URL base del backend Nest (ej. http://localhost:3001/api). Usar para llamadas directas al backend.
  */
 export function getBackendApiUrl(): string {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = normalizePublicApiUrl(process.env.NEXT_PUBLIC_API_URL)
   if (isProduction && !apiUrl) {
     throw new Error(
       'NEXT_PUBLIC_API_URL no está configurada. ' +
